@@ -4,11 +4,11 @@ const knex = require('../db/knex');
 
 router.get('/', function (req, res, next) {
   const isAuth = req.isAuthenticated();
-  if(isAuth){
+  if (isAuth) {
     const userId = req.user.id;
     knex("tasks")
       .select("*")
-      .where({user_id: userId})
+      .where({ user_id: userId })
       .then(function (results) {
         res.render('index', {
           title: 'ToDo App',
@@ -24,22 +24,23 @@ router.get('/', function (req, res, next) {
           errorMessage: [err.sqlMessage],
         });
       });
-    }else{
-      res.render('index', {
-        title: 'ToDo App',
-        isAuth: isAuth,
-      });
-    }
+  } else {
+    res.render('index', {
+      title: 'ToDo App',
+      isAuth: isAuth,
+    });
+  }
 });
 
 router.post('/', function (req, res, next) {
   const isAuth = req.isAuthenticated();
-  const userId = req.user.id; 
+  const userId = req.user.id;
   const todo = req.body.add;
+
   knex("tasks")
-    .insert({user_id: userId, content: todo})
+    .insert({ user_id: userId, content: todo})
     .then(function () {
-      res.redirect('/')
+      res.redirect('/');
     })
     .catch(function (err) {
       console.error(err);
@@ -48,6 +49,25 @@ router.post('/', function (req, res, next) {
         isAuth: isAuth,
         errorMessage: [err.sqlMessage],
       });
+    });
+});
+
+router.post('/delete/:id', function (req, res, next) {
+  const taskId = req.params.id;
+  const isAuth = req.isAuthenticated();
+  if (!isAuth) {
+    return res.redirect('/');
+  }
+
+  knex("tasks")
+    .where({ id: taskId })
+    .del()
+    .then(function () {
+      res.redirect('/');
+    })
+    .catch(function (err) {
+      console.error(err);
+      res.redirect('/');
     });
 });
 
